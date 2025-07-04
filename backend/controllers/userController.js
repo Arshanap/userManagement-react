@@ -4,23 +4,24 @@ import generateToken from '../utils/generateToken.js'
 
 
 // auth user/set token
-const authUser = asyncHandler(async (req,res)=>{
-    const { email, passowrd } = req.body;
+const authUser = asyncHandler(async (req, res) => {
+    const { email, password } = req.body; 
 
     const user = await User.findOne({ email });
 
-    if(user && (await user.matchPassword(passowrd))){
-        generateToken(res, user._id)
+    if (user && (await user.matchPassword(password))) {
+        generateToken(res, user._id);
         res.status(201).json({
             _id: user._id,
             name: user.name,
-            email: user.email
-        })
-    }else{
+            email: user.email,
+        });
+    } else {
         res.status(400);
         throw new Error('Invalid email and password');
-    }    
+    }
 });
+
 
 // register a new user
 const registerUser = asyncHandler(async (req,res)=>{
@@ -29,7 +30,7 @@ const registerUser = asyncHandler(async (req,res)=>{
     const userExist = await User.findOne({email})
     if(userExist){
         res.status(400);
-        throw new Error('User alread exists');
+        throw new Error('User alread exists.....');
     }
 
     const user = await User.create({
