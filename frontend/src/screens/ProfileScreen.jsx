@@ -13,6 +13,7 @@ const ProfileScreen = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
 
   const dispatch = useDispatch();
 
@@ -35,11 +36,28 @@ const ProfileScreen = () => {
     }
 
     try {
+      let imageUrl = userInfo.profileImage || '';
+
+      if (profileImage) {
+        const formData = new FormData();
+        formData.append('file', profileImage);
+        formData.append('upload_preset', 'my_upload');
+
+        const cloudRes = await fetch('https://api.cloudinary.com/v1_1/dx1q770nq/image/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const cloudData = await cloudRes.json();
+        imageUrl = cloudData.secure_url;
+      }
+
       const res = await updateProfile({
         _id: userInfo._id,
         name,
         email,
-        ...(password && { password }) 
+        ...(password && { password }),
+        profileImage: imageUrl,
       }).unwrap();
 
       dispatch(setCredentials({ ...res }));
@@ -53,19 +71,19 @@ const ProfileScreen = () => {
     <>
       <div className="d-flex justify-content-center">
         <div className="text-center border p-4 rounded shadow-sm" style={{ width: '500px', margin: '30px' }}>
-            <h5>Profile Info</h5>
-            <p><strong>Name:</strong> {userInfo?.name}</p>
-            <p><strong>Email:</strong> {userInfo?.email}</p>
-            <Button
-            onClick={() => setShowForm(!showForm)}
-            variant='secondary'
-            className='mb-3'
-            >
-                {showForm ? 'Hide' : 'Show edit'}
-            </Button>
+          <img
+            src={userInfo?.profileImage || 'https://via.placeholder.com/100'}
+            alt="Profile"
+            style={{ width: '100px', height: '100px', borderRadius: '50%' }}
+          />
+          <h5 className='mt-3'>Profile Info</h5>
+          <p><strong>Name:</strong> {userInfo?.name}</p>
+          <p><strong>Email:</strong> {userInfo?.email}</p>
+          <Button onClick={() => setShowForm(!showForm)} variant='secondary' className='mb-3'>
+            {showForm ? 'Hide' : 'Edit Profile'}
+          </Button>
         </div>
       </div>
-
 
       {showForm && (
         <FormContainer>
@@ -111,6 +129,22 @@ const ProfileScreen = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </Form.Group>
+
+            <Form.Group className='my-2' controlId='profileImage'>
+              <Form.Label>Profile Image</Form.Label>
+              <Form.Control
+                type='file'
+                onChange={(e) => setProfileImage(e.target.files[0])}
+              />
+            </Form.Group>
+
+            {profileImage && (
+              <img
+                src={URL.createObjectURL(profileImage)}
+                alt="Preview"
+                style={{ width: '80px', height: '80px', borderRadius: '50%', marginTop: '10px' }}
+              />
+            )}
 
             {isLoading && <Loader />}
 
