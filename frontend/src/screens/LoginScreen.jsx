@@ -19,11 +19,16 @@ const LoginScreen = () => {
 
   const { userInfo } = useSelector((state) => state.auth);
 
-  useEffect(()=>{
-    if(userInfo){
-      navigate('/')
+  useEffect(() => {
+  if (userInfo) {
+    if (userInfo.isAdmin) {
+      navigate('/dashboard');
+    } else {
+      navigate('/');
     }
-  },[navigate, userInfo])
+  }
+}, [navigate, userInfo]);
+
 
   const submitHandler = async (e) => {
     e.preventDefault();

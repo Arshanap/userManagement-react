@@ -36,28 +36,35 @@ const Header = () => {
           <Navbar.Collapse id='basic-navbar-nav'>
             <Nav className='ms-auto'>
               {userInfo ? (
-                <><NavDropdown title={userInfo.name} id='username'>
-                  <LinkContainer to='/profile'>
-                    <NavDropdown.Item>
-                      profile
-                    </NavDropdown.Item>
-                  </LinkContainer>
-                  <NavDropdown.Item onClick={ logoutHandler }>
+                <NavDropdown title={userInfo.name} id='username'>
+                  {/* Only show Profile link if NOT admin */}
+                  {!userInfo.isAdmin && (
+                    <LinkContainer to='/profile'>
+                      <NavDropdown.Item>
+                        Profile
+                      </NavDropdown.Item>
+                    </LinkContainer>
+                  )}
+
+                  <NavDropdown.Item onClick={logoutHandler}>
                     Logout
                   </NavDropdown.Item>
-                </NavDropdown></>
+                </NavDropdown>
               ) : (
-                <><LinkContainer to='/login'>
-                <Nav.Link>
-                  <FaSignInAlt /> Sign In
-                </Nav.Link>
-              </LinkContainer>
-              <LinkContainer to='/register'>
-                <Nav.Link >
-                  <FaSignOutAlt /> Sign Up
-                </Nav.Link>
-              </LinkContainer></>
+                <>
+                  <LinkContainer to='/login'>
+                    <Nav.Link>
+                      <FaSignInAlt /> Sign In
+                    </Nav.Link>
+                  </LinkContainer>
+                  <LinkContainer to='/register'>
+                    <Nav.Link>
+                      <FaSignOutAlt /> Sign Up
+                    </Nav.Link>
+                  </LinkContainer>
+                </>
               )}
+
               
             </Nav>
           </Navbar.Collapse>

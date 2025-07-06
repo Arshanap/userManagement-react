@@ -15,6 +15,7 @@ const authUser = asyncHandler(async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      isAdmin: user.isAdmin,
       profileImage: user.profileImage,
     });
   } else {
@@ -106,5 +107,102 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
+// get users to dashboard
+const getUsers = asyncHandler(async (req, res) => {
+  const keyword = req.query.keyword
+    ? { name: { $regex: req.query.keyword, $options: 'i' } }
+    : {};
 
-export { authUser, registerUser, logoutUser, getUserProfile, updateUserProfile };
+  const users = await User.find({ ...keyword });
+  res.json(users);
+});
+
+// @desc    Delete user (admin only)
+const deleteUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (user) {
+    await User.deleteOne({ _id: req.params.id });
+    res.json({ message: 'User removed' });
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+// @desc    Get user by ID (admin only)
+const getUserById = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id).select('-password');
+  if (user) {
+    res.json(user);
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+// @desc    Update user by admin
+const updateUserByAdmin = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (user) {
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+    user.isAdmin = req.body.isAdmin ?? user.isAdmin;
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      isAdmin: updatedUser.isAdmin,
+    });
+  } else {
+    res.status(404);
+    throw new Error('User not found');
+  }
+});
+
+const createUserByAdmin = asyncHandler(async (req, res) => {
+  const { name, email, password, isAdmin } = req.body;
+
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    res.status(400);
+    throw new Error('User already exists');
+  }
+
+  const user = await User.create({
+    name,
+    email,
+    password,
+    isAdmin: isAdmin || false,
+  });
+
+  if (user) {
+    res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    });
+  } else {
+    res.status(400);
+    throw new Error('Invalid user data');
+  }
+});
+
+
+
+
+export {
+  authUser,
+  registerUser,
+  logoutUser,
+  getUserProfile,
+  updateUserProfile,
+  getUsers,
+  deleteUser,
+  getUserById,
+  updateUserByAdmin,
+  createUserByAdmin
+};
